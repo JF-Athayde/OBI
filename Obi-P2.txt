@@ -1,0 +1,12 @@
+Sparse Table
+Range Minimum Query
+Lazy Propagation
+--- Segment Tree
+Meet in the Middle
+Grafos acíclicos
+--- Operações de matrizes
+--- BFS, DFS
+Tarjan
+--- Busca binaria, Linear
+--- Fenwick Tree
+--- Marge-sort

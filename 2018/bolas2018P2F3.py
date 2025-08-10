@@ -1,3 +1,6 @@
+# Simples Bonita e eficaz
+# OBS: Oq eu bati cabeça pra resolver cê n tem noção, já tava pensando em universo multidimencional, grafo
+
 def contar(sequencia):
     frequencia = {num:0 for num in list(set(sequencia))}
 
