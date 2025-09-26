@@ -1,36 +1,56 @@
-def maxmin(matriz):
-    maior = matriz[0][0]
-    menor = matriz[0][0]
+class SegmentTree:
+    def __init__(self, arr):
+        self.n = len(arr)
+        self.tree = [(0, float('inf'))] * (4 * self.n)
+        self.build(arr, 0, 0, self.n - 1)
 
-    for a in matriz:
-        for b in a:
-            if b > maior:
-                maior = b
-            if b < menor:
-                menor = b
-    
-    return maior, menor
+    def build(self, arr, node, l, r):
+        if l == r:
+            self.tree[node] = (arr[l], arr[l])
+        else:
+            mid = (l + r) // 2
+            self.build(arr, 2 * node + 1, l, mid)
+            self.build(arr, 2 * node + 2, mid + 1, r)
+            self.tree[node] = self.merge(self.tree[2 * node + 1], self.tree[2 * node + 2])
 
-def op1(baldes, i, peso):
-    baldes[i-1].append(peso)
+    def merge(self, left, right):
+        return (max(left[0], right[0]), min(left[1], right[1]))
 
-def op2(baldes, a, b):
-    baldes_limitados = baldes[a-1:b]
-    ma, me = maxmin(baldes_limitados)
+    def query(self, node, l, r, ql, qr):
+        if ql > r or qr < l:
+            return (float('-inf'), float('inf'))
+        if ql <= l and r <= qr:
+            return self.tree[node]
+        
+        mid = (l + r) // 2
+        left = self.query(2 * node + 1, l, mid, ql, qr)
+        right = self.query(2 * node + 2, mid + 1, r, ql, qr)
+        return self.merge(left, right)
 
-    for balde in baldes_limitados:
-        if (ma in balde and me not in balde) or (ma not in balde and me in balde):
-            print(ma-me)
-        if ma in balde and me in balde:
-            while True:
-                
+    def update(self, node, l, r, index, value):
+        if l == r:
+            self.tree[node] = (value, value)
+        else:
+            mid = (l + r) // 2
+            if index <= mid:
+                self.update(2 * node + 1, l, mid, index, value)
+            else:
+                self.update(2 * node + 2, mid + 1, r, index, value)
+            # Atualiza o nó atual após a atualização dos filhos
+            self.tree[node] = self.merge(self.tree[2 * node + 1], self.tree[2 * node + 2])
 
-num_baldes, num_operacoes = 10, 5#map(int, input().split())
-baldes = [[3], [9], [12], [4], [20], [5], [7], [15], [9], [10]]#[[int(x)] for x in input().split()]
-operacoes = [[1, 1, 5], [1, 33, 8], [2, 6, 9], [1, 15, 2], [2, 1, 7]]#[list(map(int, input().split())) for _ in range(num_operacoes)]
+def main():
+    baldes = [1, 3, 5, 7, 9]
+    seg_tree = SegmentTree(baldes)
 
-for i, j, k in operacoes:
-    if i == 1:
-        op1(baldes, k, j)
-    else:
-        print(op2(baldes, j, k))
+    acoes = [('1', 10, 2), ('2', 1, 5), ('2', 2, 4), ('1', 0, 3), ('2', 1, 3)]
+
+    for partes in acoes:
+        if partes[0] == '1':
+            p, i = partes[1], partes[2] - 1
+            seg_tree.update(0, 0, len(baldes) - 1, i, p)
+        else:
+            a, b = partes[1] - 1, partes[2] - 1
+            max_value, min_value = seg_tree.query(0, 0, len(baldes) - 1, a, b)
+            print(f"Resultado: {max_value - min_value}")
+main()

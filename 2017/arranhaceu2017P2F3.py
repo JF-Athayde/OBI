@@ -21,18 +21,18 @@ class FenwickTree:
     
     def range_sum(self, l, r):
         return self.prefix_sum(r) - self.prefix_sum(l-1)
+ 
+N, Q = map(int, input().split())
+andares = [0] + list(map(int, input().split()))
+eventos = [list(map(int, input().split())) for _ in range(Q)]
 
-ft = FenwickTree(5)
+ft = FenwickTree(N)
 
-ft.update(1, 5)
-ft.update(2, 3)
-ft.update(3, 7)
-ft.update(4, 6)
-ft.update(5, 2)
+for i in range(1, N+1):
+    ft.update(i, andares[i])
 
-print("Soma até índice 1:", ft.prefix_sum(1))
-print("Soma até índice 3:", ft.prefix_sum(3))
-print("Soma até índice 5:", ft.prefix_sum(5))
-
-print("Soma do intervalo [2, 4]:", ft.range_sum(2, 4))
-print("Soma do intervalo [3, 5]:", ft.range_sum(3, 5))
+for e in eventos:
+    if e[0] == 0:
+        ft.update(e[1], e[2])
+    else:
+        print(ft.range_sum(1, e[1]))

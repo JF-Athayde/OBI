@@ -1,52 +1,49 @@
 class SegmentTree:
-    def __init__(self, data):
+    def __init__(self, data, func, default):
         self.n = len(data)
-        self.size = 1
-        while self.size < self.n:
-            self.size <<= 1
-        self.tree = [0] * (2 * self.size)
-        # build inicial
+        self.func = func
+        self.default = default
+        self.tree = [default] * (2 * self.n)
+        
         for i in range(self.n):
-            self.tree[self.size + i] = data[i]
-        for i in range(self.size - 1, 0, -1):
-            self.tree[i] = self.tree[2 * i] + self.tree[2 * i + 1]
+            self.tree[self.n + i] = data[i]
+        for i in range(self.n - 1, 0, -1):
+            self.tree[i] = func(self.tree[2 * i], self.tree[2 * i + 1])
 
-    # Atualiza a posição i (0-based) para o valor val
-    def update(self, i, val):
-        pos = i + self.size
-        self.tree[pos] = val
-        pos //= 2
-        while pos > 0:
-            self.tree[pos] = self.tree[2 * pos] + self.tree[2 * pos + 1]
+    def update(self, idx, value):
+        pos = idx + self.n
+        self.tree[pos] = value
+        while pos > 1:
             pos //= 2
+            self.tree[pos] = self.func(self.tree[2 * pos], self.tree[2 * pos + 1])
 
-    # Consulta a soma do intervalo [l, r) (0-based, r exclusivo)
     def query(self, l, r):
-        res = 0
-        l += self.size
-        r += self.size
-        while l < r:
+        l += self.n
+        r += self.n
+        res = self.default
+        while l <= r:
             if l % 2 == 1:
-                res += self.tree[l]
+                res = self.func(res, self.tree[l])
                 l += 1
-            if r % 2 == 1:
+            if r % 2 == 0:
+                res = self.func(res, self.tree[r])
                 r -= 1
-                res += self.tree[r]
             l //= 2
             r //= 2
         return res
 
+arr = [5, 3, 7, 6, 2]
 
-# Exemplo de uso:
+st = SegmentTree(arr, func=lambda a, b: a + b, default=0)
 
-a = [3, 2, 1, 5, 4, 6, 7, 8, 9, 10]
-st = SegmentTree(a)
+print("Soma [0, 2]:", st.query(0, 2))
+print("Soma [1, 3]:", st.query(1, 3))
+print("Soma [2, 4]:", st.query(2, 4))
 
-# soma do intervalo [1, 5) → índices 1 até 4
-print(st.query(1, 5))  # 2+1+5+4 = 12
+st.update(2, 10)
 
-# atualiza posição 2 para valor 7 (antes era 1)
-st.update(2, 7)
+print("Soma [0, 2] após update:", st.query(0, 2))
+print("Soma [2, 4] após update:", st.query(2, 4))
 
-# soma novamente intervalo [1, 5)
-print(st.query(1, 5))  # 2+7+5+4 = 18
+st_min = SegmentTree(arr, func=min, default=float("inf"))
+print("Mínimo [1, 3]:", st_min.query(1, 3))
