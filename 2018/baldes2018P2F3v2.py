@@ -1,56 +1,102 @@
 class SegmentTree:
-    def __init__(self, arr):
-        self.n = len(arr)
-        self.tree = [(0, float('inf'))] * (4 * self.n)
-        self.build(arr, 0, 0, self.n - 1)
-
-    def build(self, arr, node, l, r):
-        if l == r:
-            self.tree[node] = (arr[l], arr[l])
-        else:
-            mid = (l + r) // 2
-            self.build(arr, 2 * node + 1, l, mid)
-            self.build(arr, 2 * node + 2, mid + 1, r)
-            self.tree[node] = self.merge(self.tree[2 * node + 1], self.tree[2 * node + 2])
-
-    def merge(self, left, right):
-        return (max(left[0], right[0]), min(left[1], right[1]))
-
-    def query(self, node, l, r, ql, qr):
-        if ql > r or qr < l:
-            return (float('-inf'), float('inf'))
-        if ql <= l and r <= qr:
-            return self.tree[node]
+    def __init__(self, data, n):
+        self.n = n
+        self.tree = [[0, 0, 0, 0, 0] for _ in range(2 * self.n)]
         
-        mid = (l + r) // 2
-        left = self.query(2 * node + 1, l, mid, ql, qr)
-        right = self.query(2 * node + 2, mid + 1, r, ql, qr)
-        return self.merge(left, right)
+        # folhas
+        for i in range(len(data)):
+            ma = max(data[i])
+            mi = min(data[i])
+            print([mi, i, ma, i, 0])
+            self.tree[self.n + i] = [mi, i, ma, i, 0]
 
-    def update(self, node, l, r, index, value):
-        if l == r:
-            self.tree[node] = (value, value)
-        else:
-            mid = (l + r) // 2
-            if index <= mid:
-                self.update(2 * node + 1, l, mid, index, value)
+        # construir
+        for i in range(self.n - 1, 0, -1):
+            a = self.tree[2 * i]
+            b = self.tree[2 * i + 1]
+            
+            min_a = (a[0], a[1])
+            min_b = (b[0], b[1])
+
+            max_a = (a[2], a[3])
+            max_b = (b[2], b[3])
+            
+            min_s = min([(a[2], a[3]), (b[2], b[3])])
+            max_s = max([(a[2], a[3]), (b[2], b[3])])
+
+            r = abs(max_b[0] - min_a[0])
+            r_ = abs(max_a[0] - min_b[0])
+            
+            if r < r_:
+                r = r_
+
+            print([min_s[0], min_s[1], max_s[0], max_s[1], r])
+
+            self.tree[i] = [min_s[0], min_s[1], max_s[0], max_s[1], r]
+                
+        input(':>')
+
+    def add(self, idx, value):
+        pos = idx + self.n
+        total = self.tree[pos]+value
+        self.tree[pos] = [min(total), max(total)]
+
+        while pos > 1:
+            pos //= 2
+            a = self.tree[2 * pos]
+            b = self.tree[2 * pos + 1]
+
+            c = [min(a), max(b)]
+            d = [max(a), min(b)]
+
+            if abs(c[0]-c[1]) > abs(d[0]-d[1]):
+                self.tree[pos] = c
             else:
-                self.update(2 * node + 2, mid + 1, r, index, value)
-            # Atualiza o nó atual após a atualização dos filhos
-            self.tree[node] = self.merge(self.tree[2 * node + 1], self.tree[2 * node + 2])
+                self.tree[pos] = d
 
-def main():
-    baldes = [1, 3, 5, 7, 9]
-    seg_tree = SegmentTree(baldes)
+    def query(self, l, r):
+        if l > r:
+            l, r = r, l  # corrige automaticamente
 
-    acoes = [('1', 10, 2), ('2', 1, 5), ('2', 2, 4), ('1', 0, 3), ('2', 1, 3)]
+        l += self.n
+        r += self.n
 
-    for partes in acoes:
-        if partes[0] == '1':
-            p, i = partes[1], partes[2] - 1
-            seg_tree.update(0, 0, len(baldes) - 1, i, p)
+        res = [float('inf'), float('-inf')]
+
+        while l <= r:
+            if l % 2 == 1:
+                res[0] = min(res[0], self.tree[l][0])
+                res[1] = max(res[1], self.tree[l][1])
+                l += 1
+
+            if r % 2 == 0:
+                res[0] = min(res[0], self.tree[r][0])
+                res[1] = max(res[1], self.tree[r][1])
+                r -= 1
+
+            l //= 2
+            r //= 2
+
+        return res
+
+    def t(self):
+        l = []
+        for i in range(self.n):
+            l.append(self.query(i, i))
+        return l
+
+N, M = 10, 5#map(int, input().split())
+baldes = [[3], [10, 4], [6, 2, 15], [8, 9], [7], [9, 9, 101]]#[[i] for i in list(map(int, input().split()))]
+ops = [[1, 1, 5], [1, 33, 8], [2, 6, 9], [1, 15, 2], [2, 1, 7]]#[list(map(int, input().split())) for _ in range(M)]
+
+st = SegmentTree(baldes, N)
+
+for op in ops:
+    if op[0] == 1:
+        st.add(op[2]-1, [op[1]])
+    else:
+        if op[1] == op[2]:
+            print(0)
         else:
-            a, b = partes[1] - 1, partes[2] - 1
-            max_value, min_value = seg_tree.query(0, 0, len(baldes) - 1, a, b)
-            print(f"Resultado: {max_value - min_value}")
-main()
+            a, b = st.query(op[2]-1, op[1]-1)
+            print(b-a)

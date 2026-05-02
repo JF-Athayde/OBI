@@ -52,5 +52,5 @@ def main():
         else:
             a, b = partes[1] - 1, partes[2] - 1
             max_value, min_value = seg_tree.query(0, 0, len(baldes) - 1, a, b)
-            print(f"Resultado: {max_value - min_value}")
+            print(max_value - min_value)
 main()
